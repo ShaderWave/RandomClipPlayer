@@ -15,7 +15,7 @@ If you have already created one and have the Client ID and Client Secret, skip t
 8. Now, download the `viewer.html` file from this repository. Save this file somewhere accessible.
 9. Open the `viewer.html` file
 10. In `CLIENT_ID` and `CLIENT_SECRET` enter the Client ID and Client Secret respectively, between the quotes.
-11. IN `BROADCASTER_NAME` enter your Twitch username, between the quotes.
+11. In `BROADCASTER_NAME` enter your Twitch username, between the quotes.
 12. Adjust any of the other settings as you wish.
 13. Once this is complete, save and close the file.
 14. In OBS/other streaming software, simply add this file as a Browser Source. You may need to tick "local file" in order for this to be possible.
