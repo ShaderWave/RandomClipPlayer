@@ -6,7 +6,7 @@
         const CLIENT_ID = "ID"
         const CLIENT_SECRET = "Secret"
         const BROADCASTER_NAME = "Broadcaster"
-        
+
         const TOP_OR_RANDOM = "top"
         const VOLUME_PERCENT = 50
         // TOP_OR_RANDOM can be either "top" to prioritise top clips or "random" to get random clips out of your top 1000
@@ -23,6 +23,16 @@
 
 
         // Utility functions
+        async function authenticatedFetch(url, options) {
+            options = options || {};
+            options.headers = options.headers || {}
+
+            options.headers["Client-ID"] = CLIENT_ID
+            options.headers["Authorization"] = `Bearer ${(await getTwitchCredentials()).access_token}`
+
+            return await fetch(url, options);
+        }
+
         let OAUTH = null;
         async function getTwitchCredentials() {
             if (OAUTH) return OAUTH;
@@ -38,27 +48,15 @@
         async function getBroadcasterId() {
             if (BROADCASTER_ID) return BROADCASTER_ID;
 
-            const response = await fetch(`https://api.twitch.tv/helix/users?login=${BROADCASTER_NAME}`, {
-                headers: {
-                    "Client-ID": CLIENT_ID,
-                    "Authorization": `Bearer ${(await getTwitchCredentials()).access_token}`
-                }
-            })
+            const response = await authenticatedFetch(`https://api.twitch.tv/helix/users?login=${BROADCASTER_NAME}`)
             BROADCASTER_ID = (await response.json()).data[0].id;
             return BROADCASTER_ID;
         }
 
         let CLIPS_PAGINATION = null
         async function getTopClips() {
-            let body = await (
-                await fetch(`https://api.twitch.tv/helix/clips?first=100&broadcaster_id=${await getBroadcasterId()}${CLIPS_PAGINATION ? `&after=${CLIPS_PAGINATION}` : ""}`,
-                    {
-                        headers: {
-                            "Client-ID": CLIENT_ID,
-                            "Authorization": `Bearer ${(await getTwitchCredentials()).access_token}`
-                        }
-                    })
-            ).json()
+            let response = await authenticatedFetch(`https://api.twitch.tv/helix/clips?first=100&broadcaster_id=${await getBroadcasterId()}${CLIPS_PAGINATION ? `&after=${CLIPS_PAGINATION}` : ""}`);
+            let body = await response.json();
 
             CLIPS_PAGINATION = body.pagination.cursor;
             return body;
@@ -70,15 +68,8 @@
             const max = 10
             let pagination = null;
             for (let i = 0; i < max; i++) { // top 1000 clips
-                let body = await (
-                    await fetch(`https://api.twitch.tv/helix/clips?first=100&broadcaster_id=${await getBroadcasterId()}${pagination ? `&after=${pagination}` : ""}`,
-                        {
-                            headers: {
-                                "Client-ID": CLIENT_ID,
-                                "Authorization": `Bearer ${(await getTwitchCredentials()).access_token}`
-                            }
-                        })
-                ).json()
+                let response = await authenticatedFetch(`https://api.twitch.tv/helix/clips?first=100&broadcaster_id=${await getBroadcasterId()}${pagination ? `&after=${pagination}` : ""}`);
+                let body = await response.json()
 
                 pagination = body.pagination.cursor;
                 clips = clips.concat(body.data)
@@ -97,12 +88,8 @@
 
         let CLIPS_TO_PLAY = []
         let CLIP_PLAYING = null
-        async function run() {
-            setupPlayer()
-            playRandom()
-        }
 
-        async function setupPlayer() {
+        function setupPlayer() {
             const player = document.getElementById("player")
 
             player.load()
@@ -123,9 +110,9 @@
             if (CLIPS_TO_PLAY.length == 0) {
                 const status = document.getElementById("status")
 
-                status.className = ""
+                status.className = "statusText"
                 CLIPS_TO_PLAY = TOP_OR_RANDOM == "top" ? (await getTopClips()).data : await getRandomClips()
-                status.className = "hide"
+                status.className = "statusText hide"
             }
 
             let random = Math.floor(Math.random() * Object.keys(CLIPS_TO_PLAY).length)
@@ -138,18 +125,35 @@
             player.play()
         }
 
+
+        function run() {
+            setupPlayer()
+            playRandom()
+        }
+
         window.addEventListener("load", run);
     </script>
 
     <video id="player" style="width: 100%; height: 100%"></video>
-    <h1 id="status"
-        style="color: white; background-color: black; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 4px; padding-left: 8px; padding-right: 8px; border-radius: 4px;">
-        Loading Clips</h1>
+    <h1 id="status" class="statusText">Loading Clips</h1>
 </body>
 
 <head>
     <style>
-        .hide {
+        .statusText {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+
+            color: white;
+            background-color: black;
+            padding: 4px;
+            padding: 4px 4px 8px 8px;
+            border-radius: 4px;
+        }
+
+        .statusText.hide {
             display: none;
         }
     </style>
