@@ -9,6 +9,7 @@
 
         const TOP_OR_RANDOM = "top"
         const VOLUME_PERCENT = 50
+        const SHOW_CLIP_CREATORS = "false"
         // TOP_OR_RANDOM can be either "top" to prioritise top clips or "random" to get random clips out of your top 1000
         // note that "random" clip mode requires a tiny bit of buffer time when the page is first loaded to collect a list of clips
 
@@ -102,6 +103,7 @@
 
         async function playRandom() {
             const player = document.getElementById("player")
+            const overlayText = document.getElementById("overlay")
 
             if (CLIP_PLAYING) {
                 CLIPS_TO_PLAY.splice(CLIPS_TO_PLAY.indexOf(CLIP_PLAYING), 1)
@@ -123,6 +125,10 @@
             player.pause()
             player.src = getClipStreamURL(clip)
             player.play()
+            if (SHOW_CLIP_CREATORS.toLowerCase() == "true") {
+                let date = new Date(clip.created_at)
+                overlayText.innerText = `Clipped on ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} by ${clip.creator_name}`
+            }
         }
 
 
@@ -133,9 +139,11 @@
 
         window.addEventListener("load", run);
     </script>
-
-    <video id="player" style="width: 100%; height: 100%"></video>
-    <h1 id="status" class="statusText">Loading Clips</h1>
+    <div class="container">
+        <video id="player" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: -1;"></video>
+        <div id="overlay" class="overlayText"></div>
+        <h1 id="status" class="statusText">Loading Clips</h1>
+    </div>
 </body>
 
 <head>
@@ -154,6 +162,21 @@
 
         .statusText.hide {
             display: none;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlayText {
+            position: absolute;
+            /*These calcs are used to track the bottom corner of the video as it holds its aspect ratio while the window is resized*/
+            top: calc((100vh - min(100vh/9, 100vw/16)*9)/2 + min(100vh/9, 100vw/16)*9 - 40px);
+            left: calc((100vw - min(100vh/9, 100vw/16)*16)/2 + 1.2vw);
+            color: white;
+            font-size: large;
         }
     </style>
 </head>
