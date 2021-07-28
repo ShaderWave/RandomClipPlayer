@@ -126,7 +126,8 @@
             player.src = getClipStreamURL(clip)
             player.play()
             if (SHOW_CLIP_CREATORS.toLowerCase() == "true") {
-                overlayText.innerText = "Cliped on " + clip.created_at.substring(0, 10) + " by " + clip.creator_name
+                let date = new Date(clip.created_at)
+                overlayText.innerText = `Clipped on ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} by ${clip.creator_name}`
             }
         }
 
