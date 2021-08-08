@@ -127,7 +127,10 @@
             player.play()
             if (SHOW_CLIP_CREATORS.toLowerCase() == "true") {
                 let date = new Date(clip.created_at)
-                overlayText.innerText = `Clipped on ${date.getFullYear()}-${date.getMonth()}-${date.getDate()} by ${clip.creator_name}`
+                let day = ('0' + date.getDate()).slice(-2);
+                let month = ('0' + (date.getMonth()+1)).slice(-2);
+                let year = date.getFullYear();
+                overlayText.innerText = `Clipped on ${year}-${month}-${day} by ${clip.creator_name}`
             }
         }
 
