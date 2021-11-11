@@ -12,7 +12,7 @@ If you have already created one and have the Client ID and Client Secret, skip t
 5. As an "OAuth redirect URL" is required, enter a link to any website - preferably one you own, or just enter a link to google (https://google.com/). **The app doesn't use this so it's not important.**
 6. Press "Create"
 7. Once created, press "Manage" and scroll to the bottom of the page. **Take note of the "Client ID" and "Client Secret"** (press new secret if there isn't one there)
-8. Now, download the `viewer.html` file from [here](https://github.com/ShaderWave/RandomClipPlayer/releases/tag/v1.1). Save this file somewhere accessible.
+8. Now, download the `viewer.html` file from [here](https://github.com/ShaderWave/RandomClipPlayer/releases/latest). Save this file somewhere accessible.
 9. Open the `viewer.html` file in a text editor of your choice.
 10. In `CLIENT_ID` and `CLIENT_SECRET` enter the Client ID and Client Secret respectively, **between the quotes.**
 11. In `BROADCASTER_NAME` enter your Twitch username, **between the quotes.**
