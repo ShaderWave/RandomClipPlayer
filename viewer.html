@@ -10,6 +10,7 @@
         const TOP_OR_RANDOM = "top"
         const VOLUME_PERCENT = 50
         const SHOW_CLIP_CREATORS = "false"
+        const PREFERRED_VIDEO_QUALITY = "1080"
         // TOP_OR_RANDOM can be either "top" to prioritise top clips or "random" to get random clips out of your top 1000
         // note that "random" clip mode requires a tiny bit of buffer time when the page is first loaded to collect a list of clips
 
@@ -128,7 +129,7 @@
              const jsonResponse = JSON.parse(responseBody);
 
              const videoQualities = jsonResponse.data.clip.videoQualities;
-             const sourceUrlIndex = videoQualities && videoQualities.length > 2 ? 2 : 0;
+             const sourceUrlIndex = videoQualities && videoQualities.findIndex(video => video.quality == PREFERRED_VIDEO_QUALITY) : 0;
              const playbackAccessToken = jsonResponse.data.clip.playbackAccessToken;
 
              return {
