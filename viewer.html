@@ -129,7 +129,9 @@
              const jsonResponse = JSON.parse(responseBody);
 
              const videoQualities = jsonResponse.data.clip.videoQualities;
-             const sourceUrlIndex = videoQualities && videoQualities.findIndex(video => video.quality == PREFERRED_VIDEO_QUALITY) : 0;
+
+             const preferredQualityIndex = videoQualities.findIndex(video => video.quality == PREFERRED_VIDEO_QUALITY);
+             const sourceUrlIndex = preferredQualityIndex == -1 ? 0 : preferredQualityIndex;
              const playbackAccessToken = jsonResponse.data.clip.playbackAccessToken;
 
              return {
