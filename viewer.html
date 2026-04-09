@@ -10,6 +10,7 @@
         const TOP_OR_RANDOM = "top"
         const VOLUME_PERCENT = 50
         const SHOW_CLIP_CREATORS = "false"
+        const PREFERRED_VIDEO_QUALITY = "1080"
         // TOP_OR_RANDOM can be either "top" to prioritise top clips or "random" to get random clips out of your top 1000
         // note that "random" clip mode requires a tiny bit of buffer time when the page is first loaded to collect a list of clips
 
@@ -82,9 +83,62 @@
             return clips;
         }
 
-        function getClipStreamURL(clip) {
-            let thumbPart = clip.thumbnail_url.split("-preview-");
-            return thumbPart[0] + ".mp4";
+        async function getClipStreamURL(clip) {
+            const result = await getClipInfo(clip.id)
+            // console.log(`Selected target: ${JSON.stringify(result)}`)
+
+            const uri = result.sourceUrl + "?token=" + encodeURIComponent(result.token) + "&sig=" + encodeURIComponent(result.signature)
+            // console.log(`Video URI: ${uri}`)
+
+            return uri
+        }
+
+        async function getClipInfo(clipId) {
+            const content = JSON.stringify(buildGraphQLQuery(clipId))
+            const response = await fetch("https://gql.twitch.tv/gql", {
+                method: "POST",
+                headers: {
+                   "Content-Type": "application/json",
+                   "Client-ID": "kimne78kx3ncx6brgo4mv6wki5h1ko"
+                },
+                body: content
+            })
+
+            const responseBody = await response.text()
+            // console.log(`GraphQL Response: ${responseBody}`)
+
+            return parseGraphQLResponse(responseBody)
+        }
+
+        function buildGraphQLQuery(clipId) {
+           return {
+              operationName: "VideoAccessToken_Clip",
+              variables: {
+                  slug: clipId
+              },
+              extensions: {
+                   persistedQuery: {
+                       version: 1,
+                       sha256Hash: "36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11"
+                   }
+              }
+           }
+        }
+
+        function parseGraphQLResponse(responseBody) {
+             const jsonResponse = JSON.parse(responseBody);
+
+             const videoQualities = jsonResponse.data.clip.videoQualities;
+
+             const preferredQualityIndex = videoQualities.findIndex(video => video.quality == PREFERRED_VIDEO_QUALITY);
+             const sourceUrlIndex = preferredQualityIndex == -1 ? 0 : preferredQualityIndex;
+             const playbackAccessToken = jsonResponse.data.clip.playbackAccessToken;
+
+             return {
+                 sourceUrl: videoQualities[sourceUrlIndex].sourceURL,
+                 signature: playbackAccessToken.signature,
+                 token: playbackAccessToken.value
+             }
         }
 
         let CLIPS_TO_PLAY = []
@@ -123,7 +177,7 @@
             CLIP_PLAYING = clip
 
             player.pause()
-            player.src = getClipStreamURL(clip)
+            player.src = await getClipStreamURL(clip)
             player.play()
             if (SHOW_CLIP_CREATORS.toLowerCase() == "true") {
                 let date = new Date(clip.created_at)
